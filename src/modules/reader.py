@@ -18,19 +18,23 @@ class Dataset:
         self.train_indices = indices[:train_count]
         self.test_indices = indices[train_count:]
 
-    def get_batch(self, is_train=False):
+    def get_batch(self, is_train=False, use_augmentation=True):
         indices = self.train_indices if is_train else self.test_indices
         batch_shape = config.batch_shape
         images_batch = []
         masks_batch = []
+
+        augmentation_scale_range = config.augmentation_scale_range
+        if not use_augmentation:
+            augmentation_scale_range = [1, 1]
         for i in range(batch_shape[0]):
             index = np.random.randint(0, len(indices))
             image_data = self.images_data[indices[index]]
             image = image_data.image
             mask = image_data.mask
 
-            scale_x = np.random.uniform(config.augmentation_scale_range[0], config.augmentation_scale_range[1])
-            scale_y = np.random.uniform(config.augmentation_scale_range[0], config.augmentation_scale_range[1])
+            scale_x = np.random.uniform(augmentation_scale_range[0], augmentation_scale_range[1])
+            scale_y = np.random.uniform(augmentation_scale_range[0], augmentation_scale_range[1])
             target_h = batch_shape[1]
             target_w = batch_shape[2]
             w = int(target_w * scale_x)
@@ -42,7 +46,9 @@ class Dataset:
             image_part = cv2.resize(image_part, (target_w, target_h))
             mask_part = cv2.resize(mask_part, (target_w//config.mask_downsample_rate,
                                                target_h//config.mask_downsample_rate))
-            image_part, mask_part = augment(image_part, mask_part)
+            if use_augmentation:
+                image_part, mask_part = augment(image_part, mask_part)
+
             images_batch.append(image_part)
             masks_batch.append(mask_part)
 
