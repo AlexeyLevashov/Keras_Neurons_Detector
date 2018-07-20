@@ -16,7 +16,7 @@ mask_downsample_rate = 4
 if osp.exists('config.json'):
     with open('config.json') as f:
         json_data = json.load(f)
-        for v in globals():
+        for v in list(globals().keys()):
             if v in json_data:
                 globals()[v] = json_data[v]
 
