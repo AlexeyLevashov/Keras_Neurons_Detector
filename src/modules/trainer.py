@@ -56,7 +56,7 @@ class Trainer:
         self.model = model
         self.dataset = dataset
 
-        sgd = optimizers.SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+        sgd = optimizers.SGD(lr=config.initial_learning_rate, decay=1e-6, momentum=0.9, nesterov=True)
         self.model.compile(loss='mean_squared_error', optimizer=sgd, loss_weights=[1])
     
         if config.show_outputs_progress:
@@ -69,7 +69,7 @@ class Trainer:
             callbacks.append(batch_callback)
 
         reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
-                                      patience=10, min_lr=0.000001, verbose=1)
+                                      patience=5, min_lr=0.000001, verbose=1)
         callbacks.append(reduce_lr)
 
         if not osp.exists(weights_dir):
@@ -96,7 +96,7 @@ class Trainer:
     
         self.model.fit_generator(generator(True),
                                  steps_per_epoch=len(self.dataset.train_indices),
-                                 epochs=150,
+                                 epochs=config.epochs_count,
                                  validation_data=generator(False),
                                  validation_steps=len(self.dataset.test_indices),
                                  callbacks=callbacks)

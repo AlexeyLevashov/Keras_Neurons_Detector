@@ -20,11 +20,12 @@ def max_blend(mask, x1, y1, x2, y2, c, part):
 
 
 class Rect:
-    def __init__(self, x=0, y=0, w=0, h=0):
+    def __init__(self, x=0, y=0, w=0, h=0, score=0.0):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
+        self.score = score
 
 
 class RectsImage:
