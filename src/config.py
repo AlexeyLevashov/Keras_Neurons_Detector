@@ -16,7 +16,7 @@ gpu_devices = None
 mask_downsample_rate = 4
 output_channels_count = 3
 
-initial_learning_rate = 0.01
+initial_learning_rate = 0.1
 epochs_count = 300
 
 show_outputs_progress = True

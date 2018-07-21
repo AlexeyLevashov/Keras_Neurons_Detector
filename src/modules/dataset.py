@@ -21,16 +21,20 @@ class Dataset:
             self.overfit_image = RectsImage(overfit_image_path)
 
     def get_batch(self, is_train=False, use_augmentation=True):
-        if config.one_batch_overfit:
-            mask = cv2.resize(self.overfit_image.mask,
-                              (self.overfit_image.mask.shape[1] // config.mask_downsample_rate,
-                               self.overfit_image.mask.shape[0] // config.mask_downsample_rate),
-                              interpolation=cv2.INTER_CUBIC)
-            if len(mask.shape) == 2:
-                mask = mask.reshape(list(mask.shape) + [1])
-            return np.asarray([self.overfit_image.image]), np.asarray([mask])
-
         indices = self.train_indices if is_train else self.test_indices
+        # if config.one_batch_overfit:
+        #     mask = cv2.resize(self.overfit_image.mask,
+        #                       (self.overfit_image.mask.shape[1] // config.mask_downsample_rate,
+        #                        self.overfit_image.mask.shape[0] // config.mask_downsample_rate),
+        #                       interpolation=cv2.INTER_CUBIC)
+        #     if len(mask.shape) == 2:
+        #         mask = mask.reshape(list(mask.shape) + [1])
+        #     return np.asarray([self.overfit_image.image]), np.asarray([mask])
+
+        if config.one_batch_overfit:
+            np.random.seed(24)
+            indices = self.train_indices
+
         batch_shape = config.batch_shape
         images_batch = []
         masks_batch = []
@@ -39,7 +43,7 @@ class Dataset:
         if not use_augmentation:
             augmentation_scale_range = [1, 1]
 
-        for i in range(batch_shape[0]):
+        while len(images_batch) < batch_shape[0]:
             index = np.random.randint(0, len(indices))
             image_data = self.images_data[indices[index]]
             image = image_data.image
@@ -60,6 +64,9 @@ class Dataset:
                                                target_h//config.mask_downsample_rate), interpolation=cv2.INTER_CUBIC)
             if use_augmentation:
                 image_part, mask_part = augment(image_part, mask_part)
+
+            if mask_part.sum() < 2.0:
+                continue
 
             images_batch.append(image_part)
             masks_batch.append(mask_part)
