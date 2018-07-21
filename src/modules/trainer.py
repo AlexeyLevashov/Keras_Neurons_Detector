@@ -100,3 +100,7 @@ class Trainer:
                                  validation_data=generator(False),
                                  validation_steps=len(self.dataset.test_indices),
                                  callbacks=callbacks)
+
+        if config.show_outputs_progress:
+            self.images_viewer.alive = False
+            self.images_viewer.join()

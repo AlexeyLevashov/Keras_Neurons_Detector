@@ -35,3 +35,4 @@ class ImagesViewer(threading.Thread):
                 if index < len(self.images):
                     self.current_index = index
 
+        cv2.destroyAllWindows()
