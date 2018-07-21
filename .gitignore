@@ -4,3 +4,4 @@ __pycache__
 *.pyc
 config.json
 train_sandbox.ipynb
+data/trained_weights

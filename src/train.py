@@ -1,14 +1,14 @@
-from modules.reader import Dataset
-from modules.detector import FCNDetector
+from modules.dataset import Dataset
 import modules.models.vgg
 import modules.models.simple_model
+from modules.trainer import Trainer
 
 
 def main():
     dataset = Dataset()
-    vgg = modules.models.simple_model.FCNModel()
-    detector = FCNDetector(vgg.model)
-    detector.train(dataset)
+    model = modules.models.simple_model.FCNModel()
+    trainer = Trainer()
+    trainer.train(model.model, dataset, model.weights_dir)
 
 
 if __name__ == '__main__':

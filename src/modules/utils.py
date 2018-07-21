@@ -1,15 +1,12 @@
 import numpy as np
+import cv2
+import config
 
 
-def combine_images(images):
-    w = sum([image.shape[1] for image in images])
-    h = images[0].shape[0]
-    part_w = images[0].shape[1]
+def preprocess_batch(batch):
+    return (batch - 127.5)/127.5
 
-    combined_image = np.zeros([h, w, 3], np.uint8)
-    for i, image in enumerate(images):
-        if len(image.shape) == 2:
-            image = np.dstack([image, image, image])
-        combined_image[:, i*part_w:(i+1)*part_w, :] = np.asarray(image, np.uint8)
 
-    return combined_image
+def postprocess_mask(masks):
+    return np.stack([cv2.resize(mask, (0, 0), fx=config.mask_downsample_rate,
+                                fy=config.mask_downsample_rate) for mask in masks])

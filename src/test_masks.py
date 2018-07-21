@@ -1,5 +1,5 @@
 import cv2
-from modules.reader import Dataset
+from modules.dataset import Dataset
 
 
 def show_images(images):
