@@ -1,6 +1,7 @@
 import os.path as osp
 import numpy as np
 import cv2
+import xml.etree.ElementTree as ET
 import config
 
 
@@ -8,9 +9,9 @@ def create_gauss_image(w, h):
     x = np.linspace(0, w-1, w) - w/2.0
     y = np.linspace(0, h-1, h) - h/2.0
     normalizer = 2
-    gauss_x = np.exp(-x ** 2 / (w * normalizer)).reshape([w, 1])
-    gauss_y = np.exp(-y ** 2 / (h * normalizer)).reshape([1, h])
-    gauss = np.dot(gauss_x, gauss_y)
+    gauss_x = np.exp(-x ** 2 / (w * normalizer)).reshape([1, w])
+    gauss_y = np.exp(-y ** 2 / (h * normalizer)).reshape([h, 1])
+    gauss = np.dot(gauss_y, gauss_x)
     return gauss
 
 
@@ -29,13 +30,13 @@ class Rect:
 class RectsImage:
     def __init__(self, image_path, rects_path=None):
         if rects_path is None:
-            rects_path = osp.splitext(image_path)[0] + '.txt'
+            rects_path = osp.splitext(image_path)[0] + '.xml'
         self.image = cv2.imread(image_path)
-        self.rects = self.load_rects(rects_path)
+        self.rects = self.load_rects_from_xml(rects_path)
         self.mask = self.draw_mask()
 
     @staticmethod
-    def load_rects(rects_filepath):
+    def load_rects_from_txt(rects_filepath):
         f = open(rects_filepath, 'r')
         rects = []
         rects_count = int(f.readline())
@@ -46,8 +47,23 @@ class RectsImage:
 
         return rects
 
+    @staticmethod
+    def load_rects_from_xml(rects_filepath):
+        tree = ET.parse(rects_filepath)
+        root = tree.getroot()
+        rects = []
+        for child in root.iter('object'):
+            rect = Rect()
+            bndbox = child.find('bndbox')
+            rect.x = int(bndbox.find('xmin').text)
+            rect.y = int(bndbox.find('ymin').text)
+            rect.w = int(bndbox.find('xmax').text) - rect.x
+            rect.h = int(bndbox.find('ymax').text) - rect.y
+            rects.append(rect)
+        return rects
+
     def draw_mask(self):
-        mask = np.zeros([self.image.shape[0], self.image.shape[1], 3], np.float32)
+        mask = np.zeros([self.image.shape[0], self.image.shape[1], config.output_channels_count], np.float32)
         for rect in self.rects:
             x1 = int(np.clip(rect.x, 0, self.image.shape[1] - 1))
             y1 = int(np.clip(rect.y, 0, self.image.shape[0] - 1))
@@ -57,7 +73,8 @@ class RectsImage:
             h = y2 - y1 + 1
             gauss = create_gauss_image(w, h)
             max_blend(mask, x1, y1, x2, y2, 0, gauss)
-            max_blend(mask, x1, y1, x2, y2, 1, gauss * rect.w / config.mean_rect_size)
-            max_blend(mask, x1, y1, x2, y2, 2, gauss * rect.h / config.mean_rect_size)
+            if config.output_channels_count > 1:
+                max_blend(mask, x1, y1, x2, y2, 1, gauss * rect.w / config.mean_rect_size)
+                max_blend(mask, x1, y1, x2, y2, 2, gauss * rect.h / config.mean_rect_size)
 
         return mask
