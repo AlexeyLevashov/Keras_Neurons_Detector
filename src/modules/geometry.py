@@ -38,7 +38,7 @@ class RectsImage:
         self.image = None
         self.mask = None
         if config.load_all_images_to_ram:
-            self.load_image()
+            self.load()
 
     def load(self):
         self.image = cv2.imread(self.image_path)
