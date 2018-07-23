@@ -25,6 +25,7 @@ show_outputs_update_time = 12
 
 save_checkpoints = True
 load_weights = False
+save_model = True
 
 
 if osp.exists('config.json'):

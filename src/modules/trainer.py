@@ -75,24 +75,25 @@ class Trainer:
         if not osp.exists(weights_dir):
             os.makedirs(weights_dir)
 
-        save_path1 = osp.join(weights_dir, 'weights.{epoch:02d}-{val_loss:.8f}.hdf5')
-        check_pointer1 = ModelCheckpoint(save_path1, save_best_only=True, verbose=1, period=10)
-        save_path2 = osp.join(weights_dir, 'best_weights.hdf5')
-        check_pointer2 = ModelCheckpoint(save_path2, save_best_only=True, verbose=1)
+        if config.save_model:
+            save_path1 = osp.join(weights_dir, 'weights.{epoch:02d}-{val_loss:.8f}.hdf5')
+            check_pointer1 = ModelCheckpoint(save_path1, save_best_only=True, verbose=1, period=10)
+            save_path2 = osp.join(weights_dir, 'best_weights.hdf5')
+            check_pointer2 = ModelCheckpoint(save_path2, save_best_only=True, verbose=1)
 
-        if config.save_checkpoints:
-            callbacks.append(check_pointer1)
+            if config.save_checkpoints:
+                callbacks.append(check_pointer1)
 
-        callbacks.append(check_pointer2)
+            callbacks.append(check_pointer2)
 
-        logs_dir = osp.join(weights_dir, 'logs')
-        if not osp.exists(logs_dir):
-            os.makedirs(logs_dir)
+            logs_dir = osp.join(weights_dir, 'logs')
+            if not osp.exists(logs_dir):
+                os.makedirs(logs_dir)
 
-        callbacks.append(TensorBoard(logs_dir))
+            callbacks.append(TensorBoard(logs_dir))
 
-        if osp.exists(save_path2) and config.load_weights:
-            self.model.load_weights(save_path2)
+            if osp.exists(save_path2) and config.load_weights:
+                self.model.load_weights(save_path2)
     
         self.model.fit_generator(generator(True),
                                  steps_per_epoch=len(self.dataset.train_indices),
