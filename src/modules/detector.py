@@ -6,9 +6,9 @@ import config
 
 
 class FCNDetector:
-    def __init__(self, model, weights_path):
+    def __init__(self, model=None, weights_path=None):
         self.model = model
-        if osp.exists(weights_path):
+        if weights_path is not None and osp.exists(weights_path):
             self.model.load_weights(weights_path)
 
         with tf.device('/cpu:0'):
@@ -18,11 +18,8 @@ class FCNDetector:
                                                       strides=[1, 1, 1, 1],
                                                       padding='SAME')
 
-    def predict_batch(self, images_batch):
+    def predict_heat_maps_batch(self, images_batch):
         batch_heat_maps = self.model.predict(images_batch)
-        for i in range(batch_heat_maps.shape[0]):
-            heat_map = batch_heat_maps[i]
-
         return batch_heat_maps
 
     def heat_map_nms(self, heat_map):
@@ -50,9 +47,21 @@ class FCNDetector:
 
             x *= config.mask_downsample_rate
             y *= config.mask_downsample_rate
-            w *= config.mask_downsample_rate
-            h *= config.mask_downsample_rate
+            x -= w/2
+            y -= h/2
 
             rects.append(Rect(x, y, w, h, score))
 
         return rects
+
+    @staticmethod
+    def rects_nms(rects):
+        output_rects = []
+        rects = sorted(rects, key=lambda x: -x.score)
+        for rect in rects:
+            nearest_rects = [1 for out_rect in output_rects
+                             if rect.iou(out_rect) > config.nms_iou_threshold]
+            if len(nearest_rects) == 0:
+                output_rects.append(rect)
+
+        return output_rects

@@ -20,13 +20,36 @@ def max_blend(mask, x1, y1, x2, y2, c, part):
 
 
 class Rect:
-    def __init__(self, x=0, y=0, w=0, h=0, score=0.0):
+    def __init__(self, x=0, y=0, w=0, h=0, score=1.0):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
         self.score = score
 
+    def iou(self, other_rect):
+        boxA = [self.x, self.y, self.x + self.w, self.y + self.h]
+        boxB = [other_rect.x, other_rect.y, other_rect.x + other_rect.w, other_rect.y + other_rect.h]
+        xA = max(boxA[0], boxB[0])
+        yA = max(boxA[1], boxB[1])
+        xB = min(boxA[2], boxB[2])
+        yB = min(boxA[3], boxB[3])
+
+        dx = xB - xA
+        dy = yB - yA
+        if dx <= 0 or dy <= 0:
+            return -1.0
+
+        interArea = dx * dy
+
+        boxAArea = (boxA[2] - boxA[0]) * (boxA[3] - boxA[1])
+        boxBArea = (boxB[2] - boxB[0]) * (boxB[3] - boxB[1])
+
+        iou = interArea / float(boxAArea + boxBArea - interArea)
+        return iou
+
+    def draw(self, image, color, th=1):
+        cv2.rectangle(image, (int(self.x), int(self.y)), (int(self.x + self.w), int(self.y + self.h)), color, th)
 
 class RectsImage:
     def __init__(self, image_path, rects_path=None):
@@ -41,16 +64,18 @@ class RectsImage:
             self.load()
 
     def load(self):
-        self.image = cv2.imread(self.image_path)
-        self.mask = self.draw_mask()
+        if not config.load_all_images_to_ram:
+            self.image = cv2.imread(self.image_path)
+            self.mask = self.draw_mask()
 
     def release(self):
-        if self.image is not None:
-            del self.image
-            self.image = None
-        if self.mask is not None:
-            del self.mask
-            self.mask = None
+        if not config.load_all_images_to_ram:
+            if self.image is not None:
+                del self.image
+                self.image = None
+            if self.mask is not None:
+                del self.mask
+                self.mask = None
 
     @staticmethod
     def load_rects_from_txt(rects_filepath):

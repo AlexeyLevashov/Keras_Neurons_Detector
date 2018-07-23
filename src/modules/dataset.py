@@ -20,14 +20,15 @@ class Dataset:
         if config.one_batch_overfit:
             self.overfit_image = RectsImage(overfit_image_path)
 
-    def get_batch(self, is_train=False, use_augmentation=True):
+    def get_batch(self, batch_shape=None, is_train=False, use_augmentation=True):
         indices = self.train_indices if is_train else self.test_indices
 
         if config.one_batch_overfit:
             np.random.seed(24)
             indices = self.train_indices
 
-        batch_shape = config.batch_shape
+        if batch_shape is None:
+            batch_shape = config.batch_shape
         images_batch = []
         masks_batch = []
 

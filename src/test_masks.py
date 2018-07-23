@@ -1,5 +1,6 @@
 import cv2
 from modules.dataset import Dataset
+import config
 
 
 def show_images(images):
@@ -29,6 +30,8 @@ def main():
             show_images(images)
 
     if TEST_BATCH_IMAGES:
+        batch_shape = config.batch_shape
+        batch_shape[0] = 1
         while 1:
             images_batch, masks_batch = dataset.get_batch()
             image = images_batch[0]

@@ -6,15 +6,12 @@ try:
 except Exception as e:
     pass
 
-
+# Train
 mean_rect_size = (24+60)/2.0
 train_split_percent = 0.8
 batch_shape = [32, 256, 256, 3]
 augmentation_scale_range = [1, 1]
 gpu_devices = None
-
-mask_downsample_rate = 4
-output_channels_count = 3
 
 initial_learning_rate = 0.1
 epochs_count = 300
@@ -29,6 +26,11 @@ load_weights = False
 save_model = True
 show_stats = False
 
+
+# Detection
+mask_downsample_rate = 4
+output_channels_count = 3
+nms_iou_threshold = 0.5
 
 if osp.exists('config.json'):
     with open('config.json') as f:
