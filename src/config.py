@@ -19,13 +19,15 @@ output_channels_count = 3
 initial_learning_rate = 0.1
 epochs_count = 300
 
-show_outputs_progress = True
-one_batch_overfit = False
 show_outputs_update_time = 12
 
+load_all_images_to_ram = True
+show_outputs_progress = True
+one_batch_overfit = False
 save_checkpoints = True
 load_weights = False
 save_model = True
+show_stats = False
 
 
 if osp.exists('config.json'):

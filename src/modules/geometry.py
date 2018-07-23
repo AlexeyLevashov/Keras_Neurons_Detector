@@ -33,9 +33,24 @@ class RectsImage:
         if rects_path is None:
             rects_path = osp.splitext(image_path)[0] + '.xml'
         self.image_name = osp.basename(image_path)
-        self.image = cv2.imread(image_path)
+        self.image_path = image_path
         self.rects = self.load_rects_from_xml(rects_path)
+        self.image = None
+        self.mask = None
+        if config.load_all_images_to_ram:
+            self.load_image()
+
+    def load(self):
+        self.image = cv2.imread(self.image_path)
         self.mask = self.draw_mask()
+
+    def release(self):
+        if self.image is not None:
+            del self.image
+            self.image = None
+        if self.mask is not None:
+            del self.mask
+            self.mask = None
 
     @staticmethod
     def load_rects_from_txt(rects_filepath):

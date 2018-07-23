@@ -1,18 +1,18 @@
 import numpy as np
 import os.path as osp
 import os
-import tensorflow as tf
 import time
 import keras.optimizers as optimizers
-import keras.backend as K
 from keras.callbacks import LambdaCallback, ReduceLROnPlateau, ModelCheckpoint, TensorBoard
 from modules.images_viewer import ImagesViewer
 from modules.utils import preprocess_batch, postprocess_mask
+from modules.tensors_stats import get_stats
 import config
 
 
 class Trainer:
     def __init__(self):
+        self.fcn_model = None
         self.model = None
         self.dataset = None
         self.writer = None
@@ -31,10 +31,10 @@ class Trainer:
         current_time = time.time()
     
         if current_time - self.last_checked_time > config.show_outputs_update_time:
-            images, masks = self.dataset.get_batch(is_train=1, use_augmentation=1)
-            max_index = np.argmax([mask.sum() for mask in masks])
-            images = images[max_index:max_index + 1]
-            masks = masks[max_index:max_index + 1]
+            init_images, init_masks = self.dataset.get_batch(is_train=1, use_augmentation=1)
+            max_index = np.argmax([mask.sum() for mask in init_images])
+            images = init_images[max_index:max_index + 1]
+            masks = init_masks[max_index:max_index + 1]
             preprocessed_images = preprocess_batch(images)
 
             predictions = self.model.predict(preprocessed_images)
@@ -43,17 +43,24 @@ class Trainer:
                 prediction = postprocess_mask(predictions)[0] * 255
                 mask = postprocess_mask(masks)[0] * 255
                 self.images_viewer.set_images([images[0], mask, prediction])
-    
+
+            if config.show_stats:
+                stats = get_stats(self.fcn_model, init_images)
+                for stat in stats:
+                    print(stat.to_string())
+
             self.last_checked_time = current_time
 
-    def train(self, model, dataset, weights_dir):
+    def train(self, fcn_model, dataset):
         def on_batch_end(*args, **kwargs):
             return self.on_batch_end(args, kwargs)
 
         def generator(*args, **kwargs):
             return self.generator(*args, **kwargs)
 
-        self.model = model
+        weights_dir = fcn_model.weights_dir
+        self.fcn_model = fcn_model
+        self.model = fcn_model.model
         self.dataset = dataset
 
         sgd = optimizers.SGD(lr=config.initial_learning_rate, decay=1e-6, momentum=0.9, nesterov=True)

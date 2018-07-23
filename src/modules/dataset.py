@@ -22,14 +22,6 @@ class Dataset:
 
     def get_batch(self, is_train=False, use_augmentation=True):
         indices = self.train_indices if is_train else self.test_indices
-        # if config.one_batch_overfit:
-        #     mask = cv2.resize(self.overfit_image.mask,
-        #                       (self.overfit_image.mask.shape[1] // config.mask_downsample_rate,
-        #                        self.overfit_image.mask.shape[0] // config.mask_downsample_rate),
-        #                       interpolation=cv2.INTER_CUBIC)
-        #     if len(mask.shape) == 2:
-        #         mask = mask.reshape(list(mask.shape) + [1])
-        #     return np.asarray([self.overfit_image.image]), np.asarray([mask])
 
         if config.one_batch_overfit:
             np.random.seed(24)
@@ -46,6 +38,10 @@ class Dataset:
         while len(images_batch) < batch_shape[0]:
             index = np.random.randint(0, len(indices))
             image_data = self.images_data[indices[index]]
+
+            if not config.load_all_images_to_ram:
+                image_data.load()
+
             image = image_data.image
             mask = image_data.mask
 
@@ -64,6 +60,9 @@ class Dataset:
                                                target_h//config.mask_downsample_rate), interpolation=cv2.INTER_CUBIC)
             if use_augmentation:
                 image_part, mask_part = augment(image_part, mask_part)
+
+            if not config.load_all_images_to_ram:
+                image_data.release()
 
             if mask_part.sum() < 2.0:
                 continue
