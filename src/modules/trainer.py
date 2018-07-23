@@ -45,10 +45,11 @@ class Trainer:
                 self.images_viewer.set_images([images[0], mask, prediction])
 
             if config.show_stats:
-                stats = get_stats(self.fcn_model, init_images)
+                stats = get_stats(self.fcn_model, preprocess_batch(init_images))
+                print('\n')
                 for stat in stats:
                     print(stat.to_string())
-
+                print('\n')
             self.last_checked_time = current_time
 
     def train(self, fcn_model, dataset):
