@@ -42,8 +42,8 @@ class FCNDetector:
             x = non_zero_elems[1][i]
             y = non_zero_elems[0][i]
             score = heat_map[y, x, 0]
-            w = heat_map[y, x, 1]*config.mean_rect_size
-            h = heat_map[y, x, 2]*config.mean_rect_size
+            w = min(heat_map[y, x, 1]*config.mean_rect_size, config.min_rect_size)
+            h = min(heat_map[y, x, 2]*config.mean_rect_size, config.min_rect_size)
 
             x *= config.mask_downsample_rate
             y *= config.mask_downsample_rate
