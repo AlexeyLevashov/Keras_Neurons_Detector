@@ -43,7 +43,7 @@ def compute_quality(ground_truth_rects, pred_rects):
     for pred_rect in false_positives_rects:
         quality_objects.append(QualityObject(0, pred_rect.score))
     for true_rect in missed_rects:
-        quality_objects.append(QualityObject(1, 0.0))
+        quality_objects.append(QualityObject(1, -1.0))
 
     return quality_objects
 
@@ -55,13 +55,18 @@ def find_optimal_threshold(quality_objects):
         true_labels.append(q.label)
         predictions.append(q.prediction)
     precision, recall, thresholds = precision_recall_curve(true_labels, predictions)
-    f1_scores = [(i, f1(precision[i+1], recall[i+1])) for i, th in enumerate(thresholds)]
+    if thresholds[0] < 0.0:
+        del precision[0]
+        del recall[0]
+        del thresholds[0]
+
+    f1_scores = [(i, f1(precision[i], recall[i])) for i, th in enumerate(thresholds)]
     f1_scores = sorted(f1_scores, key=lambda x: -x[1])
     best_index = f1_scores[0][0]
     best_precision = precision[best_index + 1]
     best_recall = recall[best_index + 1]
     best_f1 = f1(best_precision, best_recall)
-    return thresholds[best_index], best_precision, best_recall, best_f1
+    return thresholds[best_index] - 0.00001, best_precision, best_recall, best_f1
 
 
 def compute_average_precision(quality_objects):
