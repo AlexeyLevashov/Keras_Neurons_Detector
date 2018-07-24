@@ -2,6 +2,7 @@ import os.path as osp
 import numpy as np
 import cv2
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
 import config
 
 
@@ -20,12 +21,13 @@ def max_blend(mask, x1, y1, x2, y2, c, part):
 
 
 class Rect:
-    def __init__(self, x=0, y=0, w=0, h=0, score=1.0):
+    def __init__(self, x=0, y=0, w=0, h=0, score=1.0, label="neuron"):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
         self.score = score
+        self.label = label
 
     def iou(self, other_rect):
         boxA = [self.x, self.y, self.x + self.w, self.y + self.h]
@@ -102,6 +104,34 @@ class RectsImage:
             rect.h = int(bndbox.find('ymax').text) - rect.y
             rects.append(rect)
         return rects
+
+    def save_to_xml(self, xml_path):
+        root = ET.Element("annotation")
+        root.set('verified', 'yes')
+        ET.SubElement(root, "folder").text = 'labeled_images'
+        ET.SubElement(root, "filename").text = self.image_name
+        ET.SubElement(root, "path").text = self.image_path
+        ET.SubElement(ET.SubElement(root, "source"), "database").text = 'Unknown'
+        image_size = ET.SubElement(root, "size")
+        ET.SubElement(image_size, "width").text = str(self.image.shape[1])
+        ET.SubElement(image_size, "height").text = str(self.image.shape[0])
+        ET.SubElement(image_size, "depth").text = str(self.image.shape[2])
+        ET.SubElement(root, "segmented").text = "0"
+
+        for rect in self.rects:
+            obj = ET.SubElement(root, "object")
+            ET.SubElement(obj, "name").text = rect.label
+            ET.SubElement(obj, "truncated").text = "0"
+            ET.SubElement(obj, "difficult").text = "0"
+            bnd_box = ET.SubElement(obj, "bndbox")
+            ET.SubElement(bnd_box, "xmin").text = str(rect.x)
+            ET.SubElement(bnd_box, "ymin").text = str(rect.y)
+            ET.SubElement(bnd_box, "xmax").text = str(rect.x + rect.w)
+            ET.SubElement(bnd_box, "ymax").text = str(rect.y + rect.h)
+
+        xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="\t")
+        with open(xml_path, "w") as f:
+            f.write(xmlstr)
 
     def draw_mask(self):
         mask = np.zeros([self.image.shape[0], self.image.shape[1], config.output_channels_count], np.float32)
