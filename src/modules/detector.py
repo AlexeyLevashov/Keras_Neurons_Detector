@@ -30,7 +30,7 @@ class FCNDetector:
                                                    feed_dict={self.heat_map_placeholder: heat_map_batch})
             nms_heat_map = nms_heat_map[0, :, :, 0]
             nms_heat_map = heat_map_init - nms_heat_map
-            nms_heat_map = (nms_heat_map > -0.00000001) * (heat_map_init > 0.1)
+            nms_heat_map = (nms_heat_map > -0.00000001) * (heat_map_init > 0.3)
 
         return nms_heat_map
 

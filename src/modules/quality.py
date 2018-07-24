@@ -40,9 +40,13 @@ def find_optimal_threshold(quality_objects):
         true_labels.append(q.label)
         predictions.append(q.prediction)
     precision, recall, thresholds = precision_recall_curve(true_labels, predictions)
-    f1_scores = [(th, f1(precision[i], recall[i])) for i, th in enumerate(thresholds)]
+    f1_scores = [(i, f1(precision[i+1], recall[i+1])) for i, th in enumerate(thresholds)]
     f1_scores = sorted(f1_scores, key=lambda x: -x[1])
-    return f1_scores[0]
+    best_index = f1_scores[0][0]
+    best_precision = precision[best_index + 1]
+    best_recall = recall[best_index + 1]
+    best_f1 = f1(best_precision, best_recall)
+    return thresholds[best_index], best_precision, best_recall, best_f1
 
 
 def compute_average_precision(quality_objects):
