@@ -56,9 +56,9 @@ def find_optimal_threshold(quality_objects):
         predictions.append(q.prediction)
     precision, recall, thresholds = precision_recall_curve(true_labels, predictions)
     if thresholds[0] < 0.0:
-        del precision[0]
-        del recall[0]
-        del thresholds[0]
+        precision = np.delete(precision, 0)
+        recall = np.delete(recall, 0)
+        thresholds = np.delete(thresholds, 0)
 
     f1_scores = [(i, f1(precision[i], recall[i])) for i, th in enumerate(thresholds)]
     f1_scores = sorted(f1_scores, key=lambda x: -x[1])
