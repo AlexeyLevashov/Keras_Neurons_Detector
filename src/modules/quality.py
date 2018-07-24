@@ -63,8 +63,8 @@ def find_optimal_threshold(quality_objects):
     f1_scores = [(i, f1(precision[i], recall[i])) for i, th in enumerate(thresholds)]
     f1_scores = sorted(f1_scores, key=lambda x: -x[1])
     best_index = f1_scores[0][0]
-    best_precision = precision[best_index + 1]
-    best_recall = recall[best_index + 1]
+    best_precision = precision[best_index]
+    best_recall = recall[best_index]
     best_f1 = f1(best_precision, best_recall)
     return thresholds[best_index] - 0.00001, best_precision, best_recall, best_f1
 
