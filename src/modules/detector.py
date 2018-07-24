@@ -1,6 +1,6 @@
 import os.path as osp
 import tensorflow as tf
-import numpy as np
+from modules.utils import preprocess_batch, postprocess_mask
 from modules.geometry import Rect
 import config
 
@@ -19,8 +19,8 @@ class FCNDetector:
                                                       padding='SAME')
 
     def predict_heat_maps_batch(self, images_batch):
-        batch_heat_maps = self.model.predict(images_batch)
-        return batch_heat_maps
+        batch_heat_maps = self.model.predict(preprocess_batch(images_batch))
+        return postprocess_mask(batch_heat_maps)
 
     def heat_map_nms(self, heat_map):
         heat_map_init = heat_map[:, :, 0]
@@ -45,8 +45,6 @@ class FCNDetector:
             w = heat_map[y, x, 1]*config.mean_rect_size
             h = heat_map[y, x, 2]*config.mean_rect_size
 
-            x *= config.mask_downsample_rate
-            y *= config.mask_downsample_rate
             x -= w/2
             y -= h/2
 
