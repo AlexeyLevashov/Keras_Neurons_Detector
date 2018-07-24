@@ -1,13 +1,11 @@
 from modules.dataset import Dataset
-import modules.models.vgg
-import modules.models.simple_model
+import modules.models.loader as loader
 from modules.trainer import Trainer
 
 
 def main():
     dataset = Dataset()
-    # fcn_model = modules.models.simple_model.FCNModel()
-    fcn_model = modules.models.vgg.FCNModel()
+    fcn_model = loader.get_fcn_model_module().FCNModel()
     trainer = Trainer()
     trainer.train(fcn_model, dataset)
 

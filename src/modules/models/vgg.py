@@ -11,7 +11,7 @@ class FCNModel:
         self.weights_dir = '../data/trained_weights/vgg/'
         self.tensors = []
 
-        inputs = Input(shape=(config.batch_shape[1], config.batch_shape[2], config.batch_shape[3]), name="input_batch")
+        inputs = Input(shape=(None, None, config.batch_shape[3]), name="input_batch")
         self.tensors.append(inputs)
         x = Conv2D(64, (3, 3), activation='relu', padding='same')(inputs)
         x = Conv2D(64, (3, 3), activation='relu', padding='same')(x)

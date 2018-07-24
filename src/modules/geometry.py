@@ -51,6 +51,7 @@ class Rect:
     def draw(self, image, color, th=1):
         cv2.rectangle(image, (int(self.x), int(self.y)), (int(self.x + self.w), int(self.y + self.h)), color, th)
 
+
 class RectsImage:
     def __init__(self, image_path, rects_path=None):
         if rects_path is None:
@@ -64,18 +65,16 @@ class RectsImage:
             self.load()
 
     def load(self):
-        if not config.load_all_images_to_ram:
-            self.image = cv2.imread(self.image_path)
-            self.mask = self.draw_mask()
+        self.image = cv2.imread(self.image_path)
+        self.mask = self.draw_mask()
 
     def release(self):
-        if not config.load_all_images_to_ram:
-            if self.image is not None:
-                del self.image
-                self.image = None
-            if self.mask is not None:
-                del self.mask
-                self.mask = None
+        if self.image is not None:
+            del self.image
+            self.image = None
+        if self.mask is not None:
+            del self.mask
+            self.mask = None
 
     @staticmethod
     def load_rects_from_txt(rects_filepath):

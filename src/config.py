@@ -18,6 +18,7 @@ epochs_count = 300
 
 show_outputs_update_time = 12
 
+model_name = 'vgg'
 load_all_images_to_ram = True
 show_outputs_progress = True
 one_batch_overfit = False
