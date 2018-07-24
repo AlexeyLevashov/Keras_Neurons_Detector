@@ -48,7 +48,7 @@ def compute_quality(ground_truth_rects, pred_rects):
     return quality_objects
 
 
-def find_optimal_threshold(quality_objects):
+def get_precision_recall_curve(quality_objects):
     true_labels = []
     predictions = []
     for q in quality_objects:
@@ -60,6 +60,11 @@ def find_optimal_threshold(quality_objects):
         recall = np.delete(recall, 0)
         thresholds = np.delete(thresholds, 0)
 
+    return precision, recall, thresholds
+
+
+def find_optimal_threshold(quality_objects):
+    precision, recall, thresholds = get_precision_recall_curve(quality_objects)
     f1_scores = [(i, f1(precision[i], recall[i])) for i, th in enumerate(thresholds)]
     f1_scores = sorted(f1_scores, key=lambda x: -x[1])
     best_index = f1_scores[0][0]
