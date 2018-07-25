@@ -46,7 +46,8 @@ class Dataset:
             image = image_data.image
 
             scale_x = np.random.uniform(augmentation_scale_range[0], augmentation_scale_range[1])
-            scale_y = np.random.uniform(augmentation_scale_range[0], augmentation_scale_range[1])
+            # scale_y = np.random.uniform(augmentation_scale_range[0], augmentation_scale_range[1])
+            scale_y = scale_x
             target_h = batch_shape[1]
             target_w = batch_shape[2]
             w = int(target_w * scale_x)
