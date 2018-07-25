@@ -8,17 +8,15 @@ from modules.geometry import RectsImage
 
 
 class Dataset:
-    def __init__(self, labeled_images_dir='../data/labeled_images', overfit_image_path='../data/overfit/1.jpg'):
+    def __init__(self, labeled_images_dir='../data/labeled_images'):
         self.images_path_list = glob.glob(osp.join(labeled_images_dir, '*.jpg'))
-        self.images_data = np.asarray([RectsImage(image_path) for image_path in self.images_path_list])
+        self.images_data = np.asarray([RectsImage.load_from_file(image_path) for image_path in self.images_path_list])
         np.random.seed(10)
         indices = list(range(len(self.images_data)))
         np.random.shuffle(indices)
         train_count = int(len(self.images_data) * config.train_split_percent)
         self.train_indices = indices[:train_count]
         self.test_indices = indices[train_count:]
-        if config.one_batch_overfit:
-            self.overfit_image = RectsImage(overfit_image_path)
 
     def get_batch(self, batch_shape=None, is_train=False, use_augmentation=True):
         indices = self.train_indices if is_train else self.test_indices

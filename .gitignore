@@ -5,3 +5,4 @@ __pycache__
 config.json
 train_sandbox.ipynb
 data/trained_weights
+data/test_images

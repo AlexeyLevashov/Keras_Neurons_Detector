@@ -55,7 +55,26 @@ class Rect:
 
 
 class RectsImage:
-    def __init__(self, image_path, rects_path=None):
+    def __init__(self):
+        self.image_name = None
+        self.image_path = None
+        self.rects = None
+        self.image = None
+        self.mask = None
+
+    @staticmethod
+    def create(image, rects, image_path=None):
+        self = RectsImage()
+        self.rects = rects
+        self.image = image
+        if image_path is not None:
+            self.image_path = image_path
+            self.image_name = osp.basename(image_path)
+        return self
+
+    @staticmethod
+    def load_from_file(image_path, rects_path=None):
+        self = RectsImage()
         if rects_path is None:
             rects_path = osp.splitext(image_path)[0] + '.xml'
         self.image_name = osp.basename(image_path)
@@ -65,6 +84,7 @@ class RectsImage:
         self.mask = None
         if config.load_all_images_to_ram:
             self.load()
+        return self
 
     def load(self):
         self.image = cv2.imread(self.image_path)
@@ -77,18 +97,6 @@ class RectsImage:
         if self.mask is not None:
             del self.mask
             self.mask = None
-
-    @staticmethod
-    def load_rects_from_txt(rects_filepath):
-        f = open(rects_filepath, 'r')
-        rects = []
-        rects_count = int(f.readline())
-        for j in range(0, rects_count):
-            rect_values = str(f.readline()).split(' ')
-            rect = Rect(int(rect_values[0]), int(rect_values[1]), int(rect_values[2]), int(rect_values[3]))
-            rects.append(rect)
-
-        return rects
 
     @staticmethod
     def load_rects_from_xml(rects_filepath):
@@ -109,8 +117,10 @@ class RectsImage:
         root = ET.Element("annotation")
         root.set('verified', 'yes')
         ET.SubElement(root, "folder").text = 'labeled_images'
-        ET.SubElement(root, "filename").text = self.image_name
-        ET.SubElement(root, "path").text = self.image_path
+        if self.image_path is not None:
+            ET.SubElement(root, "filename").text = self.image_name
+        if self.image_name is not None:
+            ET.SubElement(root, "path").text = osp.basename(self.image_path)
         ET.SubElement(ET.SubElement(root, "source"), "database").text = 'Unknown'
         image_size = ET.SubElement(root, "size")
         ET.SubElement(image_size, "width").text = str(self.image.shape[1])
@@ -124,10 +134,10 @@ class RectsImage:
             ET.SubElement(obj, "truncated").text = "0"
             ET.SubElement(obj, "difficult").text = "0"
             bnd_box = ET.SubElement(obj, "bndbox")
-            ET.SubElement(bnd_box, "xmin").text = str(rect.x)
-            ET.SubElement(bnd_box, "ymin").text = str(rect.y)
-            ET.SubElement(bnd_box, "xmax").text = str(rect.x + rect.w)
-            ET.SubElement(bnd_box, "ymax").text = str(rect.y + rect.h)
+            ET.SubElement(bnd_box, "xmin").text = str(int(rect.x))
+            ET.SubElement(bnd_box, "ymin").text = str(int(rect.y))
+            ET.SubElement(bnd_box, "xmax").text = str(int(rect.x + rect.w))
+            ET.SubElement(bnd_box, "ymax").text = str(int(rect.y + rect.h))
 
         xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="\t")
         with open(xml_path, "w") as f:
