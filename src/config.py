@@ -7,7 +7,6 @@ except Exception as e:
     pass
 
 # Train
-min_rect_size = 24
 mean_rect_size = (24+60)/2.0
 train_split_percent = 0.8
 batch_shape = [32, 256, 256, 3]
