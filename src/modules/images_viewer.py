@@ -34,5 +34,7 @@ class ImagesViewer(threading.Thread):
                 index = key - ord('1')
                 if index < len(self.images):
                     self.current_index = index
+            if key == 27:
+                self.alive = False
 
         cv2.destroyAllWindows()
