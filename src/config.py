@@ -7,6 +7,7 @@ except Exception as e:
     pass
 
 # Train
+one_batch_overfit_seed = 10
 mean_rect_size = (24+60)/2.0
 batch_shape = [8, 256, 256, 3]
 augmentation_scale_range = [0.5, 1.5]

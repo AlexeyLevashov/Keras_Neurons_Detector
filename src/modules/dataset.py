@@ -23,7 +23,7 @@ class Dataset:
         indices = self.train_indices if is_train else self.test_indices
 
         if config.one_batch_overfit:
-            np.random.seed(25)
+            np.random.seed(config.one_batch_overfit_seed)
             indices = self.train_indices
 
         if batch_shape is None:
