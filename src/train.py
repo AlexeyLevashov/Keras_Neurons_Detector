@@ -15,7 +15,7 @@ def main():
     trainer.train(fcn_model, dataset)
     K.clear_session()
 
-    if config.one_batch_overfit:
+    if not config.one_batch_overfit:
         detector = FCNDetector(fcn_model.model, osp.join(fcn_model.weights_dir, 'best_weights.hdf5'))
         estimate_quality(detector, dataset)
 
