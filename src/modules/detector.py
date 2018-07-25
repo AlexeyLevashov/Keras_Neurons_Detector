@@ -44,7 +44,7 @@ class FCNDetector:
                 heatmap_range_y = [range_y[0] // config.mask_downsample_rate, range_y[1] // config.mask_downsample_rate]
                 heatmap_range_x = [range_x[0] // config.mask_downsample_rate, range_x[1] // config.mask_downsample_rate]
 
-                image_part = image[[0]:range_y[1], range_x[0]:range_x[1], :]
+                image_part = image[range_y[0]:range_y[1], range_x[0]:range_x[1], :]
                 heatmap_part = self.predict_heatmap(image_part)
                 image_heatmap_count[heatmap_range_y[0]:heatmap_range_y[1], heatmap_range_x[0]:heatmap_range_x[1]] += 1
                 image_heatmap[heatmap_range_y[0]:heatmap_range_y[1],
