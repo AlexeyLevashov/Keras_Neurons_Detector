@@ -9,6 +9,7 @@ import config
 class FCNDetector:
     def __init__(self, model=None, weights_path=None):
         self.model = model
+        self.weights_path = weights_path
         if weights_path is not None and osp.exists(weights_path):
             self.model.load_weights(weights_path)
 
