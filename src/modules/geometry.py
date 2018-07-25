@@ -133,19 +133,35 @@ class RectsImage:
         with open(xml_path, "w") as f:
             f.write(xmlstr)
 
-    def draw_mask(self):
-        mask = np.zeros([self.image.shape[0], self.image.shape[1], config.output_channels_count], np.float32)
-        for rect in self.rects:
-            x1 = int(np.clip(rect.x, 0, self.image.shape[1] - 1))
-            y1 = int(np.clip(rect.y, 0, self.image.shape[0] - 1))
-            x2 = int(np.clip(rect.x + rect.w - 1, 0, self.image.shape[1] - 1))
-            y2 = int(np.clip(rect.y + rect.h - 1, 0, self.image.shape[0] - 1))
-            w = x2 - x1 + 1
-            h = y2 - y1 + 1
-            gauss = create_gauss_image(w, h)
-            max_blend(mask, x1, y1, x2, y2, 0, gauss)
-            if config.output_channels_count > 1:
-                max_blend(mask, x1, y1, x2, y2, 1, gauss * rect.w / config.mean_rect_size)
-                max_blend(mask, x1, y1, x2, y2, 2, gauss * rect.h / config.mean_rect_size)
+    def draw_mask(self, rect2rect_transofrm=None):
+        if rect2rect_transofrm is None:
+            mask = np.zeros([self.image.shape[0], self.image.shape[1], config.output_channels_count], np.float32)
+            for rect in self.rects:
+                x1 = int(np.clip(rect.x, 0, self.image.shape[1] - 1))
+                y1 = int(np.clip(rect.y, 0, self.image.shape[0] - 1))
+                x2 = int(np.clip(rect.x + rect.w - 1, 0, self.image.shape[1] - 1))
+                y2 = int(np.clip(rect.y + rect.h - 1, 0, self.image.shape[0] - 1))
+                w = x2 - x1 + 1
+                h = y2 - y1 + 1
+                gauss = create_gauss_image(w, h)
+                max_blend(mask, x1, y1, x2, y2, 0, gauss)
+                if config.output_channels_count > 1:
+                    max_blend(mask, x1, y1, x2, y2, 1, gauss * rect.w / config.mean_rect_size)
+                    max_blend(mask, x1, y1, x2, y2, 2, gauss * rect.h / config.mean_rect_size)
+        else:
+            mask = np.zeros([rect2rect_transofrm.h, rect2rect_transofrm.w, config.output_channels_count], np.float32)
+            for rect in self.rects:
+                transformed_rect, inner_area, is_inside = rect2rect_transofrm.get_rect_inner_area(rect)
+                if is_inside:
+                    gauss = create_gauss_image(transformed_rect.w, transformed_rect.h)
+                    gauss = gauss[inner_area.y:inner_area.y + inner_area.w, inner_area.x:inner_area.x + inner_area.w]
+                    x1 = inner_area.x
+                    y1 = inner_area.y
+                    x2 = transformed_rect.w
+                    y2 = transformed_rect.h
+                    max_blend(mask, x1, y1, x2, y2, 0, gauss[:, :, 0])
+                    if config.output_channels_count > 1:
+                        max_blend(mask, x1, y1, x2, y2, 1, gauss * rect.w / config.mean_rect_size)
+                        max_blend(mask, x1, y1, x2, y2, 2, gauss * rect.h / config.mean_rect_size)
 
         return mask

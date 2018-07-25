@@ -12,22 +12,26 @@ def show_images(images):
         if ord('1') <= key <= ord('4'):
             current_index = key - ord('1')
         if key == 32 or key == 13:
-            break
+            return 1
         if key == 27:
-            exit()
+            return 0
 
 
 def main():
-    TEST_SOURCE_IMAGES = 0
+    TEST_SOURCE_IMAGES = 1
     TEST_BATCH_IMAGES = 1
 
+    config.load_all_images_to_ram = 0
+    config.one_batch_overfit = 0
     dataset = Dataset()
-
     if TEST_SOURCE_IMAGES:
         for rects_image in dataset.images_data:
+            rects_image.load()
             images = [rects_image.image, rects_image.mask[:, :, 0], rects_image.mask[:, :, 1],
                       rects_image.mask[:, :, 2]]
-            show_images(images)
+            if not show_images(images):
+                break
+            rects_image.release()
 
     if TEST_BATCH_IMAGES:
         batch_shape = config.batch_shape
@@ -37,7 +41,8 @@ def main():
             image = images_batch[0]
             mask = masks_batch[0]
             images = [image, mask[:, :, 0], mask[:, :, 1], mask[:, :, 2]]
-            show_images(images)
+            if not show_images(images):
+                break
 
 
 if __name__ == '__main__':
