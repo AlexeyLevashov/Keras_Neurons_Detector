@@ -8,9 +8,8 @@ except Exception as e:
 
 # Train
 mean_rect_size = (24+60)/2.0
-train_split_percent = 0.8
-batch_shape = [32, 256, 256, 3]
-augmentation_scale_range = [1, 1]
+batch_shape = [8, 256, 256, 3]
+augmentation_scale_range = [0.5, 1.5]
 gpu_devices = None
 
 initial_learning_rate = 0.1

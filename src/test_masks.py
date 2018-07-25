@@ -18,7 +18,7 @@ def show_images(images):
 
 
 def main():
-    TEST_SOURCE_IMAGES = 1
+    TEST_SOURCE_IMAGES = 0
     TEST_BATCH_IMAGES = 1
 
     config.load_all_images_to_ram = 0
@@ -27,6 +27,7 @@ def main():
     if TEST_SOURCE_IMAGES:
         for rects_image in dataset.images_data:
             rects_image.load()
+            rects_image.mask = rects_image.draw_mask()
             images = [rects_image.image, rects_image.mask[:, :, 0], rects_image.mask[:, :, 1],
                       rects_image.mask[:, :, 2]]
             if not show_images(images):
@@ -41,6 +42,7 @@ def main():
             image = images_batch[0]
             mask = masks_batch[0]
             images = [image, mask[:, :, 0], mask[:, :, 1], mask[:, :, 2]]
+            print(mask.shape)
             if not show_images(images):
                 break
 

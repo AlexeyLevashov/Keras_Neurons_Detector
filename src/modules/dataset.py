@@ -3,26 +3,27 @@ import glob
 import numpy as np
 import config
 import cv2
+from modules.geometry import Rect
+from modules.transform import Rect2RectTransform
 from modules.augmentation import augment
 from modules.geometry import RectsImage
 
 
 class Dataset:
     def __init__(self, labeled_images_dir='../data/labeled_images'):
-        self.images_path_list = glob.glob(osp.join(labeled_images_dir, '*.jpg'))
+        train_images_paths = list(glob.glob(osp.join(labeled_images_dir, 'train/*.jpg')))
+        test_images_paths = list(glob.glob(osp.join(labeled_images_dir, 'test/*.jpg')))
+        self.images_path_list = train_images_paths + test_images_paths
         self.images_data = np.asarray([RectsImage.load_from_file(image_path) for image_path in self.images_path_list])
-        np.random.seed(10)
         indices = list(range(len(self.images_data)))
-        np.random.shuffle(indices)
-        train_count = int(len(self.images_data) * config.train_split_percent)
-        self.train_indices = indices[:train_count]
-        self.test_indices = indices[train_count:]
+        self.train_indices = indices[:len(train_images_paths)]
+        self.test_indices = indices[len(train_images_paths):]
 
     def get_batch(self, batch_shape=None, is_train=False, use_augmentation=True):
         indices = self.train_indices if is_train else self.test_indices
 
         if config.one_batch_overfit:
-            np.random.seed(24)
+            np.random.seed(25)
             indices = self.train_indices
 
         if batch_shape is None:
@@ -42,7 +43,6 @@ class Dataset:
                 image_data.load()
 
             image = image_data.image
-            mask = image_data.mask
 
             scale_x = np.random.uniform(augmentation_scale_range[0], augmentation_scale_range[1])
             scale_y = np.random.uniform(augmentation_scale_range[0], augmentation_scale_range[1])
@@ -53,10 +53,11 @@ class Dataset:
             x = np.random.randint(0, image.shape[1] - w - 1)
             y = np.random.randint(0, image.shape[0] - h - 1)
             image_part = image[y: y + h, x: x + w]
-            mask_part = mask[y: y + h, x: x + w]
             image_part = cv2.resize(image_part, (target_w, target_h))
-            mask_part = cv2.resize(mask_part, (target_w//config.mask_downsample_rate,
-                                               target_h//config.mask_downsample_rate), interpolation=cv2.INTER_CUBIC)
+
+            rect2rect_transform = Rect2RectTransform(Rect(x, y, w, h), Rect(0, 0, target_w//config.mask_downsample_rate,
+                                                                            target_h//config.mask_downsample_rate))
+            mask_part = image_data.draw_mask(rect2rect_transform)
             if use_augmentation:
                 image_part, mask_part = augment(image_part, mask_part)
 

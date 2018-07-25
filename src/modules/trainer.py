@@ -3,7 +3,7 @@ import os.path as osp
 import os
 import time
 import keras.optimizers as optimizers
-from keras.callbacks import LambdaCallback, ReduceLROnPlateau, ModelCheckpoint, TensorBoard
+from keras.callbacks import LambdaCallback, ReduceLROnPlateau, ModelCheckpoint, TensorBoard, EarlyStopping
 from modules.images_viewer import ImagesViewer
 from modules.utils import preprocess_batch, postprocess_mask
 from modules.tensors_stats import get_stats
@@ -78,7 +78,9 @@ class Trainer:
 
         reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
                                       patience=5, min_lr=0.000001, verbose=1)
+        early_stopping = EarlyStopping(monitor='val_loss', patience=15)
         callbacks.append(reduce_lr)
+        callbacks.append(early_stopping)
 
         if not osp.exists(weights_dir):
             os.makedirs(weights_dir)
@@ -102,12 +104,13 @@ class Trainer:
 
             if osp.exists(save_path2) and config.load_weights:
                 self.model.load_weights(save_path2)
-    
+
+        steps_per_epoch_multiplier = 32//config.batch_shape[0]
         self.model.fit_generator(generator(True),
-                                 steps_per_epoch=len(self.dataset.train_indices),
+                                 steps_per_epoch=len(self.dataset.train_indices)*steps_per_epoch_multiplier,
                                  epochs=config.epochs_count,
                                  validation_data=generator(False),
-                                 validation_steps=len(self.dataset.test_indices),
+                                 validation_steps=len(self.dataset.test_indices)*steps_per_epoch_multiplier,
                                  callbacks=callbacks)
 
         if config.show_outputs_progress:

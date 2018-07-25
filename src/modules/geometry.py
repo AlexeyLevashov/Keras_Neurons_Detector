@@ -7,9 +7,9 @@ import config
 
 
 def create_gauss_image(w, h):
-    x = np.linspace(0, w-1, w) - w/2.0
-    y = np.linspace(0, h-1, h) - h/2.0
-    normalizer = 2
+    x = np.linspace(-(w-1)//2, (w-1)//2, w)
+    y = np.linspace(-(h-1)//2, (h-1)//2, h)
+    normalizer = 0.2
     gauss_x = np.exp(-x ** 2 / (w * normalizer)).reshape([1, w])
     gauss_y = np.exp(-y ** 2 / (h * normalizer)).reshape([h, 1])
     gauss = np.dot(gauss_y, gauss_x)
@@ -17,7 +17,7 @@ def create_gauss_image(w, h):
 
 
 def max_blend(mask, x1, y1, x2, y2, c, part):
-    mask[y1:y2 + 1, x1:x2 + 1, c] = np.maximum(mask[y1:y2 + 1, x1:x2 + 1, c], part)
+    mask[y1:y2, x1:x2, c] = np.maximum(mask[y1:y2, x1:x2, c], part)
 
 
 class Rect:
@@ -88,7 +88,8 @@ class RectsImage:
 
     def load(self):
         self.image = cv2.imread(self.image_path)
-        self.mask = self.draw_mask()
+        assert self.image is not None, 'Image {} is None'.format(self.image_path)
+        # self.mask = self.draw_mask()
 
     def release(self):
         if self.image is not None:
@@ -161,17 +162,17 @@ class RectsImage:
         else:
             mask = np.zeros([rect2rect_transofrm.h, rect2rect_transofrm.w, config.output_channels_count], np.float32)
             for rect in self.rects:
-                transformed_rect, inner_area, is_inside = rect2rect_transofrm.get_rect_inner_area(rect)
+                transformed_rect, inner_area, is_inside, gauss_size = rect2rect_transofrm.get_rect_inner_area(rect)
                 if is_inside:
-                    gauss = create_gauss_image(transformed_rect.w, transformed_rect.h)
-                    gauss = gauss[inner_area.y:inner_area.y + inner_area.w, inner_area.x:inner_area.x + inner_area.w]
-                    x1 = inner_area.x
-                    y1 = inner_area.y
-                    x2 = transformed_rect.w
-                    y2 = transformed_rect.h
-                    max_blend(mask, x1, y1, x2, y2, 0, gauss[:, :, 0])
+                    gauss = create_gauss_image(gauss_size[0], gauss_size[1])
+                    gauss = gauss[inner_area.y:inner_area.y + inner_area.h, inner_area.x:inner_area.x + inner_area.w]
+                    x1 = transformed_rect.x
+                    y1 = transformed_rect.y
+                    x2 = transformed_rect.x + transformed_rect.w
+                    y2 = transformed_rect.y + transformed_rect.h
+                    max_blend(mask, x1, y1, x2, y2, 0, gauss)
                     if config.output_channels_count > 1:
-                        max_blend(mask, x1, y1, x2, y2, 1, gauss * rect.w / config.mean_rect_size)
-                        max_blend(mask, x1, y1, x2, y2, 2, gauss * rect.h / config.mean_rect_size)
+                        max_blend(mask, x1, y1, x2, y2, 1, gauss * gauss_size[0] / config.mean_rect_size)
+                        max_blend(mask, x1, y1, x2, y2, 2, gauss * gauss_size[1] / config.mean_rect_size)
 
         return mask
