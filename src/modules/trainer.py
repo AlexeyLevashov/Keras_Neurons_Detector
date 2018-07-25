@@ -32,7 +32,7 @@ class Trainer:
     
         if current_time - self.last_checked_time > config.show_outputs_update_time:
             init_images, init_masks = self.dataset.get_batch(is_train=1, use_augmentation=1)
-            max_index = np.argmax([mask.sum() for mask in init_images])
+            max_index = np.argmax([mask.sum() for mask in init_masks])
             images = init_images[max_index:max_index + 1]
             masks = init_masks[max_index:max_index + 1]
             preprocessed_images = preprocess_batch(images)
