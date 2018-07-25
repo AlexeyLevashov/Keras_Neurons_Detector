@@ -10,7 +10,7 @@ except Exception as e:
 one_batch_overfit_seed = 10
 mean_rect_size = (24+60)/2.0
 batch_shape = [8, 256, 256, 3]
-augmentation_scale_range = [0.5, 1.5]
+augmentation_scale_range = [1, 1]
 gpu_devices = None
 
 initial_learning_rate = 0.5
