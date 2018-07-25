@@ -76,9 +76,9 @@ class Trainer:
         if config.show_outputs_progress:
             callbacks.append(batch_callback)
 
-        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.4,
+        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
                                       patience=5, min_lr=0.00001, verbose=1, min_delta=1e-6)
-        early_stopping = EarlyStopping(monitor='val_loss', patience=7, verbose=1, min_delta=1e-6)
+        early_stopping = EarlyStopping(monitor='val_loss', patience=15, verbose=1, min_delta=1e-6)
         callbacks.append(reduce_lr)
         callbacks.append(early_stopping)
 
