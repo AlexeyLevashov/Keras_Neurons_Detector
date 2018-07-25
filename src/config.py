@@ -13,7 +13,7 @@ batch_shape = [8, 256, 256, 3]
 augmentation_scale_range = [1, 1]
 gpu_devices = None
 
-initial_learning_rate = 0.5
+initial_learning_rate = 0.2
 epochs_count = 300
 
 show_outputs_update_time = 12
