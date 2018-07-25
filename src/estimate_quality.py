@@ -75,7 +75,7 @@ def estimate_quality(detector, dataset):
                               'Threshold': test_threshold}
 
     with open(osp.splitext(detector.weights_path)[0] + '_quality_report.txt', 'w') as f:
-        json.dump(quality_report, f)
+        json.dump(quality_report, f, indent=4)
 
 
 def main():
