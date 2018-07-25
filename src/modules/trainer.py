@@ -105,12 +105,12 @@ class Trainer:
             if osp.exists(save_path2) and config.load_weights:
                 self.model.load_weights(save_path2)
 
-        steps_per_epoch_multiplier = 32//config.batch_shape[0]
+        steps_per_epoch_multiplier = 32/config.batch_shape[0]
         self.model.fit_generator(generator(True),
-                                 steps_per_epoch=len(self.dataset.train_indices)*steps_per_epoch_multiplier,
+                                 steps_per_epoch=int(len(self.dataset.train_indices)*steps_per_epoch_multiplier),
                                  epochs=config.epochs_count,
                                  validation_data=generator(False),
-                                 validation_steps=len(self.dataset.test_indices)*steps_per_epoch_multiplier,
+                                 validation_steps=int(len(self.dataset.test_indices)*steps_per_epoch_multiplier),
                                  callbacks=callbacks)
 
         if config.show_outputs_progress:
