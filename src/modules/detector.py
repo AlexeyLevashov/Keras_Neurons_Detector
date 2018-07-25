@@ -36,7 +36,7 @@ class FCNDetector:
         padding_y = image.shape[0] % config.mask_downsample_rate
         padding_x = image.shape[1] % config.mask_downsample_rate
         image = np.pad(image, ((0, padding_y), (0, padding_x), (0, 0)), 'edge')
-        image = preprocess_batch(image)
+        image = np.asarray(image, np.float32)
         image_heatmap = np.zeros([image.shape[0]//downsample_rate, image.shape[1] // downsample_rate, cc], np.float32)
         image_heatmap_count = np.zeros([image.shape[0] // downsample_rate, image.shape[1] // downsample_rate], np.int)
         for range_y in patch_covering(patch_size, patch_overlap, image.shape[0]):
