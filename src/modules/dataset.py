@@ -24,6 +24,7 @@ class Dataset:
 
         if config.one_batch_overfit:
             np.random.seed(config.one_batch_overfit_seed)
+            use_augmentation = False
             indices = self.train_indices
 
         if batch_shape is None:
