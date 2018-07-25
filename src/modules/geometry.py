@@ -172,7 +172,9 @@ class RectsImage:
                     y2 = transformed_rect.y + transformed_rect.h
                     max_blend(mask, x1, y1, x2, y2, 0, gauss)
                     if config.output_channels_count > 1:
-                        max_blend(mask, x1, y1, x2, y2, 1, gauss * gauss_size[0] / config.mean_rect_size)
-                        max_blend(mask, x1, y1, x2, y2, 2, gauss * gauss_size[1] / config.mean_rect_size)
+                        width_multiplier = gauss_size[0] / config.mean_rect_size * config.mask_downsample_rate
+                        height_multiplier = gauss_size[1] / config.mean_rect_size * config.mask_downsample_rate
+                        max_blend(mask, x1, y1, x2, y2, 1, gauss * width_multiplier)
+                        max_blend(mask, x1, y1, x2, y2, 2, gauss * height_multiplier)
 
         return mask

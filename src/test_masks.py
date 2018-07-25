@@ -42,7 +42,7 @@ def main():
             image = images_batch[0]
             mask = masks_batch[0]
             images = [image, mask[:, :, 0], mask[:, :, 1], mask[:, :, 2]]
-            print(mask.shape)
+            print(mask[:, :, 0].max(), mask[:, :, 1].max(), mask[:, :, 2].max(), )
             if not show_images(images):
                 break
 
