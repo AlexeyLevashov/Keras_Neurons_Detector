@@ -31,27 +31,31 @@ class FCNDetector:
     def predict_heatmap_by_patching(self, image):
         patch_size = config.patch_size
         patch_overlap = config.patch_overlap
+        heatmap_patch_overlap = config.patch_overlap // config.mask_downsample_rate
         cc = config.output_channels_count
         downsample_rate = config.mask_downsample_rate
         padding_y = image.shape[0] % config.mask_downsample_rate
         padding_x = image.shape[1] % config.mask_downsample_rate
-        image = np.pad(image, ((0, padding_y), (0, padding_x), (0, 0)), 'edge')
+        image = np.pad(image, ((patch_overlap, patch_overlap + padding_y), (patch_overlap, patch_overlap +padding_x),
+                               (0, 0)), 'edge')
         image = np.asarray(image, np.float32)
         image_heatmap = np.zeros([image.shape[0]//downsample_rate, image.shape[1] // downsample_rate, cc], np.float32)
-        image_heatmap_count = np.zeros([image.shape[0] // downsample_rate, image.shape[1] // downsample_rate], np.int)
-        for range_y in patch_covering(patch_size, patch_overlap, image.shape[0]):
-            for range_x in patch_covering(patch_size, patch_overlap, image.shape[1]):
-                heatmap_range_y = [range_y[0] // config.mask_downsample_rate, range_y[1] // config.mask_downsample_rate]
-                heatmap_range_x = [range_x[0] // config.mask_downsample_rate, range_x[1] // config.mask_downsample_rate]
+        for range_y in patch_covering(patch_size, patch_overlap*2, image.shape[0]):
+            for range_x in patch_covering(patch_size, patch_overlap*2, image.shape[1]):
+                heatmap_range_y = np.asarray([(range_y[0] + patch_overlap) // config.mask_downsample_rate,
+                                              (range_y[1] - patch_overlap) // config.mask_downsample_rate])
+                heatmap_range_x = np.asarray([(range_x[0] + patch_overlap) // config.mask_downsample_rate,
+                                              (range_x[1] - patch_overlap) // config.mask_downsample_rate])
 
                 image_part = image[range_y[0]:range_y[1], range_x[0]:range_x[1], :]
                 heatmap_part = self.predict_heatmap(image_part)
-                image_heatmap_count[heatmap_range_y[0]:heatmap_range_y[1], heatmap_range_x[0]:heatmap_range_x[1]] += 1
-                image_heatmap[heatmap_range_y[0]:heatmap_range_y[1],
-                              heatmap_range_x[0]:heatmap_range_x[1], :] += heatmap_part
+                image_heatmap[heatmap_range_y[0]:heatmap_range_y[1], heatmap_range_x[0]:heatmap_range_x[1], :] = \
+                    heatmap_part[heatmap_patch_overlap:-heatmap_patch_overlap,
+                                 heatmap_patch_overlap:-heatmap_patch_overlap]
 
-        for c in range(cc):
-            image_heatmap[:, :, c] /= image_heatmap_count
+        image_heatmap = image_heatmap[heatmap_patch_overlap: -heatmap_patch_overlap,
+                                      heatmap_patch_overlap: -heatmap_patch_overlap]
+
         return image_heatmap
 
     def heat_map_nms(self, heat_map):
