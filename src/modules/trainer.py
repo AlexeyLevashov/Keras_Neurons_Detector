@@ -5,8 +5,9 @@ import time
 import keras.optimizers as optimizers
 from keras.callbacks import LambdaCallback, ReduceLROnPlateau, ModelCheckpoint, TensorBoard, EarlyStopping
 from modules.images_viewer import ImagesViewer
-from modules.utils import preprocess_batch, postprocess_mask
+from modules.utils import preprocess_batch
 from modules.tensors_stats import get_stats
+from modules.detector import FCNDetector
 import config
 
 
@@ -20,6 +21,7 @@ class Trainer:
         self.merged = None
         self.last_checked_time = 0
         self.global_step = 0
+        self.detector = FCNDetector()
     
     def generator(self, is_train):
         while 1:
@@ -40,9 +42,23 @@ class Trainer:
             predictions = self.model.predict(preprocessed_images)
     
             if config.show_outputs_progress:
-                prediction = postprocess_mask(predictions)[0] * 255
-                mask = postprocess_mask(masks)[0] * 255
-                self.images_viewer.set_images([images[0], mask, prediction])
+                image = images[0].copy()
+
+                pred_nms_heat_map = self.detector.heat_map_nms(predictions[0])
+                pred_rects = self.detector.obtain_rects(pred_nms_heat_map, predictions[0])
+                pred_reduced_rects = FCNDetector.rects_nms(pred_rects)
+                for rect in pred_reduced_rects:
+                    rect.draw(image, (255, 0, 0), 2)
+
+                true_nms_heat_map = self.detector.heat_map_nms(masks[0])
+                true_rects = self.detector.obtain_rects(true_nms_heat_map, masks[0])
+                true_reduced_rects = FCNDetector.rects_nms(true_rects)
+                for rect in true_reduced_rects:
+                    rect.draw(image, (0, 255, 0), 1)
+
+                prediction = predictions[0] * 255
+                mask = masks[0] * 255
+                self.images_viewer.set_images([image, mask, prediction])
 
             if config.show_stats:
                 stats = get_stats(self.fcn_model, preprocess_batch(init_images))
@@ -76,7 +92,7 @@ class Trainer:
         if config.show_outputs_progress:
             callbacks.append(batch_callback)
 
-        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
+        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.8,
                                       patience=5, min_lr=0.00001, verbose=1, min_delta=1e-6)
         early_stopping = EarlyStopping(monitor='val_loss', patience=15, verbose=1, min_delta=1e-6)
         callbacks.append(reduce_lr)
@@ -85,10 +101,10 @@ class Trainer:
         if not osp.exists(weights_dir):
             os.makedirs(weights_dir)
 
+        save_path1 = osp.join(weights_dir, 'weights.{epoch:02d}-{val_loss:.8f}.hdf5')
+        save_path2 = osp.join(weights_dir, 'best_weights.hdf5')
         if config.save_model:
-            save_path1 = osp.join(weights_dir, 'weights.{epoch:02d}-{val_loss:.8f}.hdf5')
             check_pointer1 = ModelCheckpoint(save_path1, save_best_only=True, verbose=1, period=10)
-            save_path2 = osp.join(weights_dir, 'best_weights.hdf5')
             check_pointer2 = ModelCheckpoint(save_path2, save_best_only=True, verbose=1)
 
             if config.save_checkpoints:
@@ -102,8 +118,8 @@ class Trainer:
 
             callbacks.append(TensorBoard(logs_dir))
 
-            if osp.exists(save_path2) and config.load_weights:
-                self.model.load_weights(save_path2)
+        if osp.exists(save_path2) and config.load_weights:
+            self.model.load_weights(save_path2)
 
         steps_per_epoch_multiplier = 32/config.batch_shape[0]*2
         self.model.fit_generator(generator(True),

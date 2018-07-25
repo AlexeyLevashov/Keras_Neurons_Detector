@@ -9,7 +9,7 @@ import config
 def create_gauss_image(w, h):
     x = np.linspace(-(w-1)//2, (w-1)//2, w)
     y = np.linspace(-(h-1)//2, (h-1)//2, h)
-    normalizer = 0.2
+    normalizer = 0.5
     gauss_x = np.exp(-x ** 2 / (w * normalizer)).reshape([1, w])
     gauss_y = np.exp(-y ** 2 / (h * normalizer)).reshape([h, 1])
     gauss = np.dot(gauss_y, gauss_x)
