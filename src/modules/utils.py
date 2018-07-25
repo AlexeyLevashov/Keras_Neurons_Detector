@@ -17,6 +17,7 @@ def check_range(r, max_size):
         return r
     d = r[1] - max_size
     r[1] -= d
+    r[0] -= d
     return r
 
 
