@@ -74,7 +74,7 @@ def estimate_quality(detector, dataset):
                               'Recall': test_best_recall,
                               'Threshold': test_threshold}
 
-    with open(osp.splitext(detector.weights_path)[0] + '_quality_report.txt') as f:
+    with open(osp.splitext(detector.weights_path)[0] + '_quality_report.txt', 'w') as f:
         json.dump(quality_report, f)
 
 
