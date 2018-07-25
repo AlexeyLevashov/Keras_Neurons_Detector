@@ -77,7 +77,7 @@ class Trainer:
             callbacks.append(batch_callback)
 
         reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
-                                      patience=1, min_lr=0.000001, verbose=1, min_delta=1e-6)
+                                      patience=5, min_lr=0.000001, verbose=1, min_delta=1e-6)
         early_stopping = EarlyStopping(monitor='val_loss', patience=15, verbose=1, min_delta=1e-6)
         callbacks.append(reduce_lr)
         callbacks.append(early_stopping)
@@ -105,7 +105,7 @@ class Trainer:
             if osp.exists(save_path2) and config.load_weights:
                 self.model.load_weights(save_path2)
 
-        steps_per_epoch_multiplier = 32/config.batch_shape[0]
+        steps_per_epoch_multiplier = 32/config.batch_shape[0]*2
         self.model.fit_generator(generator(True),
                                  steps_per_epoch=int(len(self.dataset.train_indices)*steps_per_epoch_multiplier),
                                  epochs=config.epochs_count,
