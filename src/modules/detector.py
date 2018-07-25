@@ -1,6 +1,7 @@
 import os.path as osp
 import tensorflow as tf
-from modules.utils import preprocess_batch
+import numpy as np
+from modules.utils import preprocess_batch, patch_covering
 from modules.geometry import Rect
 import config
 
@@ -18,9 +19,40 @@ class FCNDetector:
                                                       strides=[1, 1, 1, 1],
                                                       padding='SAME')
 
-    def predict_heat_maps_batch(self, images_batch):
-        batch_heat_maps = self.model.predict(preprocess_batch(images_batch))
+    def predict_heatmap(self, images_batch):
+        images_batch_ = images_batch
+        if len(images_batch.shape) == 3:
+            images_batch_ = np.asarray([images_batch_])
+        batch_heat_maps = self.model.predict(preprocess_batch(images_batch_))
+        if len(images_batch.shape) == 3:
+            batch_heat_maps = batch_heat_maps[0]
         return batch_heat_maps
+
+    def predict_heatmap_by_patching(self, image):
+        patch_size = config.patch_size
+        patch_overlap = config.patch_overlap
+        cc = config.output_channels_count
+        downsample_rate = config.mask_downsample_rate
+        padding_y = image.shape[0] % config.mask_downsample_rate
+        padding_x = image.shape[1] % config.mask_downsample_rate
+        image = np.pad(image, ((0, padding_y), (0, padding_x), (0, 0)), 'edge')
+        image = preprocess_batch(image)
+        image_heatmap = np.zeros([image.shape[0]//downsample_rate, image.shape[1] // downsample_rate, cc], np.float32)
+        image_heatmap_count = np.zeros([image.shape[0] // downsample_rate, image.shape[1] // downsample_rate], np.int)
+        for range_y in patch_covering(patch_size, patch_overlap, image.shape[0]):
+            for range_x in patch_covering(patch_size, patch_overlap, image.shape[1]):
+                heatmap_range_y = [range_y[0] // config.mask_downsample_rate, range_y[1] // config.mask_downsample_rate]
+                heatmap_range_x = [range_x[0] // config.mask_downsample_rate, range_x[1] // config.mask_downsample_rate]
+
+                image_part = image[[0]:range_y[1], range_x[0]:range_x[1], :]
+                heatmap_part = self.predict_heatmap(image_part)
+                image_heatmap_count[heatmap_range_y[0]:heatmap_range_y[1], heatmap_range_x[0]:heatmap_range_x[1]] += 1
+                image_heatmap[heatmap_range_y[0]:heatmap_range_y[1],
+                              heatmap_range_x[0]:heatmap_range_x[1], :] += heatmap_part
+
+        for c in range(cc):
+            image_heatmap[:, :, c] /= image_heatmap_count
+        return image_heatmap
 
     def heat_map_nms(self, heat_map):
         heat_map_init = heat_map[:, :, 0]
@@ -42,8 +74,8 @@ class FCNDetector:
             x = non_zero_elems[1][i]
             y = non_zero_elems[0][i]
             score = heat_map[y, x, 0]
-            w = min(heat_map[y, x, 1]*config.mean_rect_size, config.min_rect_size)
-            h = min(heat_map[y, x, 2]*config.mean_rect_size, config.min_rect_size)
+            w = heat_map[y, x, 1]/score*config.mean_rect_size
+            h = heat_map[y, x, 2]/score*config.mean_rect_size
 
             x *= config.mask_downsample_rate
             y *= config.mask_downsample_rate

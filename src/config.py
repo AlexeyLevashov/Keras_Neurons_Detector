@@ -34,6 +34,9 @@ mask_downsample_rate = 4
 output_channels_count = 3
 nms_iou_threshold = 0.5
 
+patch_size = 512
+patch_overlap = 64
+
 if osp.exists('config.json'):
     with open('config.json') as f:
         json_data = json.load(f)
