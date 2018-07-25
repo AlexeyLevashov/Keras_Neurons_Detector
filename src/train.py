@@ -5,6 +5,7 @@ import modules.models.loader as loader
 from modules.detector import FCNDetector
 from modules.trainer import Trainer
 from estimate_quality import estimate_quality
+import config
 
 
 def main():
@@ -14,8 +15,9 @@ def main():
     trainer.train(fcn_model, dataset)
     K.clear_session()
 
-    detector = FCNDetector(fcn_model.model, osp.join(fcn_model.weights_dir, 'best_weights.hdf5'))
-    estimate_quality(detector, dataset)
+    if config.one_batch_overfit:
+        detector = FCNDetector(fcn_model.model, osp.join(fcn_model.weights_dir, 'best_weights.hdf5'))
+        estimate_quality(detector, dataset)
 
 
 if __name__ == '__main__':
