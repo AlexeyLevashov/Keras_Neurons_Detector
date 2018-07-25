@@ -34,6 +34,9 @@ class FCNDetector:
         heatmap_patch_overlap = config.patch_overlap // config.mask_downsample_rate
         cc = config.output_channels_count
         downsample_rate = config.mask_downsample_rate
+        target_w = image.shape[1] // downsample_rate
+        target_h = image.shape[0] // downsample_rate
+
         padding_y = image.shape[0] % config.mask_downsample_rate
         padding_x = image.shape[1] % config.mask_downsample_rate
         image = np.pad(image, ((patch_overlap, patch_overlap + padding_y), (patch_overlap, patch_overlap +padding_x),
@@ -55,6 +58,7 @@ class FCNDetector:
 
         image_heatmap = image_heatmap[heatmap_patch_overlap: -heatmap_patch_overlap,
                                       heatmap_patch_overlap: -heatmap_patch_overlap]
+        image_heatmap = image_heatmap[:target_h, :target_w, :]
 
         return image_heatmap
 
