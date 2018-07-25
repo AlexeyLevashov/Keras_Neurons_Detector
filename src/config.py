@@ -32,6 +32,7 @@ show_stats = False
 mask_downsample_rate = 4
 output_channels_count = 3
 nms_iou_threshold = 0.5
+heat_map_min_threshold = 0.3
 
 patch_size = 512
 patch_overlap = 64
