@@ -6,7 +6,7 @@ neurons on medical images of brain slices of rats.
 This implementation achieve approximately 80% F1 score on 
 dataset of 61 annotated images. Solution is tested and
 worked well on Linux Ubuntu 14.0 and Windows 10 with
-Python3
+Python3 <br>
 ![image](https://github.com/AlexeyLevashov/Keras_Neurons_Detector/blob/master/pics/img.png?raw=true)
 ![image](https://github.com/AlexeyLevashov/Keras_Neurons_Detector/blob/master/pics/mask.png?raw=true)
 ![image](https://github.com/AlexeyLevashov/Keras_Neurons_Detector/blob/master/pics/annotations.png?raw=true)
