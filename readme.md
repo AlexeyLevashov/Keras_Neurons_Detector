@@ -38,8 +38,12 @@ Training takes ~2 hours on Tesla P40. <br>
 After training the model weights with quality report will
 be created in data/trained_weights/vgg <br>
 data/trained_weights/vgg/best_weights.hdf5 <br>
-data/trained_weights/vgg/best_weights_quality_report.txt
+data/trained_weights/vgg/best_weights_quality_report.txt <br><br>
 
+Last trained weights for VGG-like network you can download from here: <br>
+https://drive.google.com/file/d/11h7gJpFrQgUPx_Uq7YLxPANx7BjYemLo<br>
+This weights should be placed here: <br>
+data/trained_weights/vgg/best_weights.hdf5 <br>
 
 ## Testing
 For testing trained net on dataset: <br>
