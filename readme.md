@@ -42,12 +42,12 @@ data/trained_weights/vgg/best_weights_quality_report.txt
 
 
 ## Testing
-For just testing training net on dataset: <br>
+For testing trained net on dataset: <br>
 `python estimate_quality.py`
 
 
 ## Detection
-For making detection on new images run: <br>
+For making detections on new images run: <br>
 `python detect.py <images_mask>` <br>
 e.g. <br>
 `python detect.py data/validation_images/*.jpg`
