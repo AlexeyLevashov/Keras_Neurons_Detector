@@ -36,8 +36,8 @@ For training just run: <br>
 
 Training takes ~2 hours on Tesla P40. <br>
 After training the model weights with quality report will
-be created in data/trained_weights/vgg: <br>
-data/trained_weights/vgg/best_weights.hdf5
+be created in data/trained_weights/vgg <br>
+data/trained_weights/vgg/best_weights.hdf5 <br>
 data/trained_weights/vgg/best_weights_quality_report.txt
 
 
